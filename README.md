@@ -1,14 +1,14 @@
 # 🌧️ DYffCast: Regional Scale Precipitation Nowcasting Using IMERG Satellite Data
 
 <div style="text-align: center;">
-  <img src="title/readme_dyffusion_method.png" alt="DYffusion Method" />
+  <img src="readme_dyffusion_method.png" alt="DYffusion Method" />
   <p><em>DYffusion forecasts a sequence of <i>h</i> snapshots <i>x<sub>t+i<sub>1</sub></sub> , x<sub>t+i<sub>2</sub></sub> , ... , x<sub>t+h</sub></i> given the initial condition <i>x<sub>0</sub></i>. This is analogous to how standard diffusion models are used to sample from a distribution.</em></p>
 </div>
 
 This work extends the probabilistic spatio-temporal forecasting framework, **DYffusion** (from [Rose-STL-Lab/dyffusion](https://github.com/Rose-STL-Lab/dyffusion/tree/main)) to the task of precipitation nowcasting. The aim of this study was to forecast IMERG satellite precipitation data up to a 4-hour horizon. In particular, this work focuses on Colombia, Ecuador, and Perú — countries more susceptible to increased flooding due to climate change and lacking freely available ground-based weather radar data. Additionally, a novel loss function, referred to as LCB, was introduced, combining MSE, MAE, and the LPIPS perceptual score. DYffusion trained with LCB (DYffusion<sub>LCB</sub>), outperformed three competitor models: two ConvLSTM baselines trained with LCB and binary cross-entropy (BCE) loss respecitvely and, a DYffusion model trained with its native L1 loss. The models were also evaluated on the heavy rain event, Cyclone Yaku. DYffusion<sub>LCB</sub> was able to capture the small and large scale features, generating sharp and stable forecasts up to a 2-hour horizon.
 
 <div style="text-align: center;">
-  <img src="title/readme_cyclone_yaku_forecasts.png" alt="Cyclone Yaku Evolution" />
+  <img src="readme_cyclone_yaku_forecasts.png" alt="Cyclone Yaku Evolution" />
   <p><em>The evolution of Cyclone Yaku over 4 hours, showing undersampled intervals of 1-hour, beginning at 03:00 UTC on March 9, 2023. From top to bottom: Ground truth IMERG data (1<sup>st</sup> row), DYffusion<sub>LCB</sub> (2<sup>nd</sup> row), DYffusion<sub>L1</sub> (3<sup>rd</sup> row), ConvLSTM<sub>LCB</sub> (4<sup>th</sup> row) and ConvLSTM<sub>BCE</sub> (5<sup>th</sup> row).</em></p>
 </div>
 

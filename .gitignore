@@ -10,7 +10,6 @@ rainnow/satellite/logs
 .RT-H5
 logs/
 sequences/
-*.png
 frames
 *.nc
 *.h5
