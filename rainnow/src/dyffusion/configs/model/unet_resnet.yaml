@@ -1,0 +1,46 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - _base_model_config.yaml   # general, model independent, parameters
+
+model:
+  _target_: rainnow.src.models.unet_resnet.UNet
+  name: 'UNetR'               
+  verbose: True
+  num_conditional_channels: 0
+  init_dim: 32 
+  dim: 64                    # the first conv layer will be conv2d(init_dim, dim).
+  dim_mults: [1, 2, 4]       # the multiples of the dim i.e. [init_dim, 1*dim, 2*dim, 4*dim].
+  double_conv_layer: True    # Whether to use double convNext layer or not.
+  learned_variance: False
+  learned_sinusoidal_cond: False
+  learned_sinusoidal_dim: 16
+  block_num_groups: null     # if null, defaults to Batchnorm.
+  apply_batchnorm: True      # apply batch norm after input and encoder / decoder layers.
+  apply_layernorm_after_attn: True
+  # dropout rates:
+  input_dropout: 0.0
+  block_dropout1: 0.1        
+  block_dropout: 0.3
+  attn_dropout: 0.1    
+  with_time_emb: True        # true if using time embedding.
+  keep_spatial_dims: False   # If True, no down/up-sampling is performed
+  outer_sample_mode: null    # "bilinear" or "nearest" or None (=no upsampling)
+  upsample_dims: null        # or a tuple of ints
+  init_kernel_size: 7
+  init_padding: 3
+  init_stride: 1
+  final_kernel_size: 5       # if null, defaults to 4.
+  # activations:
+  # Set _target_ to null if you don't want to use activations.
+  layer_activation:
+    # _target_: null
+    _target_: torch.nn.ReLU
+  block_activation:          # <-- make sure that this is not null.
+    _target_: torch.nn.ReLU
+    # _target_: torch.nn.Mish
+    # _target_: torch.nn.SiLU
+  output_activation:
+    # _target_: torch.nn.ReLU
+    _target_: torch.nn.Tanh

@@ -1,0 +1,8 @@
+# csv logger built in lightning
+
+csv:
+  _target_: pytorch_lightning.loggers.CSVLogger
+  save_dir: ${work_dir}/logs/
+  name: ""
+  prefix: ""
+  version: ""

@@ -1,0 +1,12 @@
+# @package _global_
+
+defaults:
+  - /module@_here_: _base_experiment_config.yaml             # base experiment config with defaults params.
+  - _self_
+
+module:
+  _target_: rainnow.src.dyffusion.experiment_types.forecasting_multi_horizon.MultiHorizonForecastingDYffusion
+  autoregressive_steps: 0
+  prediction_timesteps: null
+  monitor: "val/${module.num_predictions}_num_ens/avg/${module.experiment_type}/crps"  
+  experiment_type: dyffusion

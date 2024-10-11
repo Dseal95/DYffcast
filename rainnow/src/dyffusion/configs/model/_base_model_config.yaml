@@ -1,0 +1,6 @@
+# @package _global_
+
+model:
+  name: ""
+  verbose: ${verbose}
+  num_conditional_channels: 0  # To be used for, e.g., diffusion models

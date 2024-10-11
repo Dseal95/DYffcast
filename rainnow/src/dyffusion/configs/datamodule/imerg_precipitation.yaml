@@ -1,0 +1,46 @@
+_target_: rainnow.src.dyffusion.datamodules.imerg_precipitation.IMERGPrecipitationDataModule
+batch_size: 6           # batch size for training
+eval_batch_size: 6      # batch size for validation/testing (larger might be faster, but uses more RAM)
+num_workers: 4          # number of workers for data loading  (-1 means all available CPUs)
+pin_memory: True
+drop_last: False
+verbose: True
+persistent_workers: False                  # can speed up training. Default is False.
+# imerg info:
+# this needs to point to the data dir where data is being loaded from.
+# data_dir: "/Users/ds423/git_uni/dyffusion/data/"                # local machine.
+data_dir: "/Volumes/external_disk_seal/data/imerg_datasets"       # external harddrive.
+# data_dir: "/teamspace/studios/this_studio/data"                 # lightning AI.
+# data_dir: "/rds/general/user/ds423/home/rainnow/data/"          # imperial HPC.
+
+boxes: ["1,0"] 
+# boxes: ["0,0", "1,0", "2,0", "2,1"]
+window: 1
+horizon: 8
+prediction_horizon: 8   
+sequence_dt: 1                             # this is in the name of the data file.
+multi_horizon: False                       # use multiple horizons (e.g. 1,2,3,4,5,6,7,8,9,10)
+box_size: 128                              # size of the box in degrees (lat, lon)
+
+# data pre-processing.
+# full length sequence. **DATA NORMALIZATION INFO**
+# ['0,0', '1,0', '2,0', '2,1'] #13471 : percentiles (1, 99) = (0.0, 5.670000076293945) | pp(min, max) = (0.0, ) | raw(min, max) = (0.0, 138.2899932861328) |
+# ['0,0'] #4,584: percentiles (1, 99) = (0.0, 6.569999694824219) | pp(min, max) = (0.0, 3.093253924266575) | raw(min, max) = (0.0, 138.2899932861328) |
+# ['1,0'] #4,817: percentiles (1, 99) = (0.0, 5.509999752044678) | pp(min, max) = (0.0, 3.091207436740887) | raw(min, max) = (0.0, 115.72999572753906) |
+# ['2,0'] #1,089: percentiles (1, 99) = (0.0, 3.359999895095825) | pp(min, max) = (0.0, 3.2243370874438178) | raw(min, max) = (0.0, 81.0999984741211) |
+# ['2,1'] #2,981: percentiles (1, 99) = (0.0, 5.230000019073486) | pp(min, max) = (0.0, 2.94655004435866) | raw(min, max) = (0.0, 94.3499984741211) |
+normalization:
+  norm: True
+  percentiles: [0.0, 5.670000076293945]    # 1st and 99th percentiles based on raw training data.
+  min_max: [0.0, 3.23434630590838]         # min and max of the training data after log scale + linear transformed.
+
+# train, val and test data splits. dt lims are not inclusive.
+# null means no lower or upper bound.
+data_splits:
+  train: [null, "2023-01-01 00:00:00"]                     # jan-20 - may-23
+  val: ["2023-01-01 00:00:00", "2023-07-01 00:00:00"]      # may-23 - sep-23
+  test: ["2023-07-01 00:00:00", "2024-01-01 00:00:00"]     # sep-23 - jan-24
+  # a predict slice is a 'known' example that you want to predict on.
+  # it will be removed from the 'train' and 'val' datasets and accessible via _data_predict.
+  # it is a chosen test case.
+  predict: ["2023-03-08 00:00:00", "2023-03-10 00:00:00"]  # 8th/9th Mar-2023

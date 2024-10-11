@@ -1,0 +1,33 @@
+# The following will save the k best model weights to <ckpt_dir>/<filename_k>.pt
+model_checkpoint:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  # monitor can be overriden by module specific config files. 
+  monitor: ${module.monitor}  # this will get overridden by the experiment.yaml i.e. interpolation.yaml.
+  mode: "min"                       # "max" means higher metric value is better, can be also "min"
+  save_top_k: 1                     # save k best models (determined by above metric)
+  save_last: True                   # additionally always save model from last epoch
+  verbose: True
+  dirpath: ${ckpt_dir}
+  filename: "${name}_${name_suffix}_epoch{epoch:03d}_seed${seed}"
+  auto_insert_metric_name: False
+
+# early stopping based on the `monitor` metric (usually validation MSE).
+early_stopping:
+  _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: "train/loss"             # name of the logged metric which determines when model is improving
+  mode: 'min'                       # "min" means higher metric value is better, can be also "max"
+  patience: 15                      # how many validation epochs of not improving until training stops
+  min_delta: 0                      # minimum change in the monitored metric needed to qualify as an improvement
+  verbose: True
+
+# linear learning rate scheduler.
+lr_monitor:
+  _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  logging_interval: "epoch"
+
+reduce_lr_on_plateau:
+  _target_: rainnow.src.dyffusion.utilities.lr_scheduler.ReduceLROnPlateauCallback
+  monitor: "train/loss"             # or "val/oss"
+  mode: "min"
+  factor: 0.1
+  patience: 10

@@ -1,0 +1,46 @@
+  
+diffusion:
+  _target_: rainnow.src.dyffusion.diffusion.dyffusion.DYffusion  
+  # a trained interpolated path needs to be given.
+  interpolator_checkpoint_id: "interpolation-cc2yoiyi" # "interpolation-lndwhf39" #  "interpolation-pmfexw2m" # "interpolation-lndwhf39" #   # "interpolation-lndwhf39"  #
+  interpolator_checkpoint_base_path: "/Users/ds423/git_uni/irp-ds423/rainnow/results/interpolation_experiments"
+  # interpolator_checkpoint_base_path: "/teamspace/studios/this_studio/irp-ds423/rainnow/results/"
+  # interpolator_checkpoint_base_path: "/rds/general/user/ds423/home/rainnow/results/"
+
+  # Contribution of the loss term to the total loss.
+  lambda_reconstruction: 0.5    # corresponds to the main loss term (diffusion loss)
+  lambda_reconstruction2: 0.5   # corresponds to the auxiliary loss term that simulates one step of the diffusion process
+
+  # How to condition the forecaster network. Options: "none", "data", "data+noise"
+  # If "data", condition on the input data (i.e., the initial conditions at time t0)
+  # If "data+noise", condition on a linear interpolation between the input data and a noise sample
+  # If "none", do not condition the forecaster network. The only input will be the output of the interpolator
+  forward_conditioning: "data" #"data+noise"
+
+  # Using auxiliary diffusion steps (k>0 in the paper)
+  # The following parameters are only used if additional_interpolation_steps or additional_interpolation_steps_factor > 0
+  schedule: 'linear' # 'before_t1_only'     # If 'before_t1_only', all auxiliary diffusion steps are added before t1
+  additional_interpolation_steps: 0   # k, how many additional diffusion steps to add. Only used if schedule='before_t1_only'
+  additional_interpolation_steps_factor: 0   # only use if schedule='linear'
+  interpolate_before_t1: False.       # Whether to interpolate before t1 too. Must be true if schedule='before_t1_only'
+
+  # Time encoding refers to the way the time is encoded for the forecaster network for a given diffusion step.
+  time_encoding: "dynamics"           # Options: "dynamics", "discrete". Recommended: "dynamics", i.e. use actual timestep
+
+  # Enabling stochastic dropout in the interpolator is strongly recommended for better performance
+  enable_interpolator_dropout: True   # Keep True!
+
+  # ---- Sampling related parameters:
+  # Sampling algorithm. Options: 'cold', 'naive'. Strongly recommended: 'cold'
+  sampling_type: 'cold'
+  # Accelerate sampling when k > 0, by using fewer diffusion steps by skipping some auxiliary diffusion steps
+  sampling_schedule: null             # E.g. set to "every2nd" to skip every second auxiliary diffusion step. Only used if k > 0
+  sampling_timesteps: null            # null means use all timesteps
+  return_sampled_values: False        # default is True.
+  # Whether to refine the intermediate interpolor predictions by re-running the interpolator (line 6 in Algorithm 1)
+  # It is recommended to set this to False during training
+  # At validation time you may set it to True to see if it improves the results
+  refine_intermediate_predictions: False
+
+  timesteps: ${datamodule.horizon}    # Do not change, it is automatically inferred by DYffusion
+  log_every_t: null

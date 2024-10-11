@@ -1,0 +1,25 @@
+# @package _global_
+
+defaults:
+  - _base_model_config.yaml   # general, model independent, parameters
+  - _self_
+
+model:
+  _target_: rainnow.src.models.unet.UNet
+  name: 'UNet'
+  verbose: True
+  num_conditional_channels: 0
+
+  dim: 64
+  outer_sample_mode: 'bilinear'  # "bilinear" or "nearest" or None (=no upsampling)
+  upsample_dims: null # [256, 256]     # null or a tuple of ints
+  with_time_emb: True
+  input_dropout: 0.0
+  dropout: 0.0
+  # activations. Set _target_ to null if you don't want to use activations.
+  input_activation:
+    _target_: torch.nn.ReLU  # null
+    inplace: False
+  output_activation:
+    _target_: torch.nn.ReLU  # null
+    inplace: False

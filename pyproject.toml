@@ -1,0 +1,21 @@
+[tool.black]
+line-length = 105
+target-version = ['py310']
+include = '\.pyi?$|\.ipynb$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.docformatter]
+wrap-summaries = 88
+wrap-descriptions = 88
