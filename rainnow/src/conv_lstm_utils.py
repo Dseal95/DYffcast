@@ -66,10 +66,10 @@ class IMERGDataset(Dataset):
     # TODO: unit test this.
     def __getitem__(self, idx):
         sequence = self.data.__getitem__(idx)["dynamics"]
-        input = sequence[-(self.sequence_length + self.target_length) : -self.target_length, ...]
+        inputs = sequence[-(self.sequence_length + self.target_length) : -self.target_length, ...]
         target = sequence[-self.target_length :, ...]
 
-        return input, target
+        return inputs, target
 
     def __len__(self):
         return self.data.__len__()
