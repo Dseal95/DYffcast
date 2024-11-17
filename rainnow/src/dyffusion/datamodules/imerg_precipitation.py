@@ -68,6 +68,7 @@ class IMERGPrecipitationDataModule(BaseDataModule):
         prediction_horizon: int = None,  # None means use horizon.
         multi_horizon: bool = False,
         normalization: Dict[str, Union[bool, List[float]]] = None,
+        data_augmentation: Dict[str, Union[bool, List[float]]] = None,
         data_splits: Dict[str, List[Optional[str]]] = {},
         **kwargs,
     ):
@@ -86,6 +87,10 @@ class IMERGPrecipitationDataModule(BaseDataModule):
 
         # data pre-processing info.
         self.normalization_hparams = OmegaConf.to_container(normalization) if normalization else {}
+        self.data_augmentation_hparams = (
+            OmegaConf.to_container(data_augmentation) if data_augmentation else {}
+        )
+        self.dataset_kwargs = {**self.normalization_hparams, **self.data_augmentation_hparams}
 
         # 'train', 'val', 'test' and 'predict' data splits.
         self.train_lims = data_splits.get("train")
@@ -411,7 +416,7 @@ class IMERGPrecipitationDataModule(BaseDataModule):
                 # Alternatively, load the numpy arrays from disk (if requested).
                 numpy_tensors = split_ds
 
-            tensor_ds = MyTensorDataset(numpy_tensors, dataset_id=split, **self.normalization_hparams)
+            tensor_ds = MyTensorDataset(numpy_tensors, dataset_id=split, **self.dataset_kwargs)
             # save the tensor dataset to self._data_{split}
             setattr(self, f"_data_{split}", tensor_ds)
             assert getattr(self, f"_data_{split}") is not None, f"Could not create {split} dataset"
