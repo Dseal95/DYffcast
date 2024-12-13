@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import torch
-from torch import nn, optim
+from torch import nn, optim, Tensor
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
@@ -43,6 +43,7 @@ class IMERGDataset(Dataset):
         split: str,
         sequence_length: int,
         target_length: int,
+        reverse_probability: float = 0.0,
     ):
         """Initialisation."""
         # inputs.
@@ -50,6 +51,9 @@ class IMERGDataset(Dataset):
         self.sequence_length = sequence_length
         self.target_length = target_length
         assert self.sequence_length >= self.target_length
+
+        # data augmentation.
+        self.reverse_probability = reverse_probability  # [0, 1].
 
         # handle splits.
         if split == "train":
@@ -63,9 +67,18 @@ class IMERGDataset(Dataset):
         else:
             raise ValueError()
 
+    @staticmethod
+    def _reverse_sequence(sequence: Tensor, dim_to_flip: int):
+        """Reverse a tensor sequence on a certain dimension to help regularise the model."""
+        return torch.flip(sequence, dims=[dim_to_flip])
+
     # TODO: unit test this.
     def __getitem__(self, idx):
         sequence = self.data.__getitem__(idx)["dynamics"]
+
+        if torch.rand(1) < self.reverse_probability:
+            sequence = self._reverse_sequence(sequence=sequence, dim_to_flip=0)
+
         inputs = sequence[-(self.sequence_length + self.target_length) : -self.target_length, ...]
         target = sequence[-self.target_length :, ...]
 
@@ -79,7 +92,7 @@ def train(
     model: nn.Module,
     device: str,
     data_loader: DataLoader,
-    optimizer: optim.Optimizer,
+    optimizer: torch.optim.Optimizer,
     criterion: nn.Module,
     tepoch: tqdm,
     curr_epoch: int,
@@ -126,9 +139,11 @@ def train(
         optimizer.zero_grad()
         pred = model(X)
 
-        # for LPIPS, I need to get it in form N, C, H, W.
-        loss = criterion(pred.reshape(-1, 1, 128, 128), y.reshape(-1, 1, 128, 128))
-        # loss = criterion(pred, y)
+        if criterion.__class__.__name__ == "LPIPSMSELoss":
+            # for LPIPS, need to get it in form N, C, H, W.
+            loss = criterion(pred.reshape(-1, 1, 128, 128), y.reshape(-1, 1, 128, 128))
+        else:
+            loss = criterion(pred, y)
 
         loss.backward()
         optimizer.step()
@@ -180,9 +195,11 @@ def validate(
 
             pred = model(X)
 
-            # for LPIPS, I need to get it in form N, C, H, W.
-            loss = criterion(pred.reshape(-1, 1, 128, 128), y.reshape(-1, 1, 128, 128))
-            # loss = criterion(pred, y)
+            if criterion.__class__.__name__ == "LPIPSMSELoss":
+                # for LPIPS, need to get it in form N, C, H, W.
+                loss = criterion(pred.reshape(-1, 1, 128, 128), y.reshape(-1, 1, 128, 128))
+            else:
+                loss = criterion(pred, y)
 
             val_loss += loss.item()
 
@@ -326,6 +343,12 @@ def create_eval_loader(
 ) -> Tuple[List[Tuple[torch.Tensor, torch.Tensor]], List[Tuple[torch.Tensor, torch.Tensor]]]:
     """Create a custom dataloader containing input:target samples with an overlap of input_sequence_length.
 
+    Using the input_sequence_length = 4 and horizon = 8 as an example:
+       - input=4 -  ------ target=8 ------
+    1. [x][x][x][x]|[y][y][y][y][y][y][y][y]
+    2               [x][x][x][x]|[y][y][y][y][y][y][y][y]
+    3.                           [x][x][x][x]|[y][y][y][y][y][y][y][y]
+
     Parameters
     ----------
     data_loader : DataLoader
@@ -357,7 +380,7 @@ def create_eval_loader(
     # this contains all HxW images in the dataloader.
     unravel_loader = torch.cat([i.view(-1, 1, *img_dims) for i in samples], dim=0)
 
-    # create input_sequence_length:horizon input: target pairs, keeping only the complete pairs (eligible).
+    # create input_sequence_length:horizon, input:target pairs, keeping only the complete pairs (eligible).
     eval_loader, uneligible = [], []
     for i in range((unravel_loader.size(0) - input_sequence_length) // input_sequence_length):
         seq = unravel_loader[
@@ -372,7 +395,9 @@ def create_eval_loader(
             uneligible.append((_input, _target))
 
     # check that the loader was made properly.
-    # the first the ith input should always equal i-1th first <input_sequence_length> images.
+    # the first input_sequence_length of images in the target should
+    # equal the input images. The samples are made with no input
+    # sequence overlap.
     prev_target = None
     for X, target in eval_loader:
         if prev_target is not None:

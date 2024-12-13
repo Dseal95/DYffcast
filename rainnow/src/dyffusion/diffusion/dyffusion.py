@@ -745,7 +745,7 @@ class DYffusion(BaseDYffusion):
         self.init_fcast_linear_schedule = initial_forecast_linear_schedule
 
         # extract the schedule infomation to class attrs.
-        if self.init_fcast_linear_schedule["apply_schedule"]:
+        if self.init_fcast_linear_schedule:
             self.apply_schedule = True
             self.schedule_start = self.init_fcast_linear_schedule["schedule_start"]
             self.schedule_end = self.init_fcast_linear_schedule["schedule_end"]

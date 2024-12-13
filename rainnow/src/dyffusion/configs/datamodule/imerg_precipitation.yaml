@@ -45,4 +45,4 @@ data_splits:
   # a predict slice is a 'known' example that you want to predict on.
   # it will be removed from the 'train' and 'val' datasets and accessible via _data_predict.
   # it is a chosen test case.
-  predict: ["2023-03-08 00:00:00", "2023-03-10 00:00:00"]  # 8th/9th Mar-2023
+  predict: ["2023-03-07 00:00:00", "2023-03-10 00:00:00"]  # 8th/9th Mar-2023
