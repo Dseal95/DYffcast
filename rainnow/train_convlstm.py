@@ -25,7 +25,7 @@ from rainnow.src.loss import LPIPSMSELoss
 from rainnow.src.normalise import PreProcess
 
 
-#TODO: abstract this all out into a training config.
+# TODO: abstract this all out into a training config.
 # ** DIRs **
 # CKPT_BASE_PATH = "/teamspace/studios/this_studio/DYffcast/rainnow/results/"
 # CONFIGS_BASE_PATH = "/teamspace/studios/this_studio/DYffcast/rainnow/src/dyffusion/configs/"
