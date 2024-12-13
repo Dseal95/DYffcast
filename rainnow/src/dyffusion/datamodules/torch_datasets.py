@@ -58,11 +58,27 @@ class MyTensorDataset(Dataset[Dict[str, Tensor]]):
         """initialisation."""
         log.info(f"creating {dataset_id.upper()} tensor dataset.")
 
+        self.dataset_id = dataset_id
+
         # pre-processing / normalisation info.
         self.normalize = kwargs.get("norm", False)
         self.train_percentiles = kwargs.get("percentiles", None)
         self.minmax = kwargs.get("min_max", None)
         self.pprocessor = None
+
+        # training data augmentation.
+        if self.dataset_id == "train":
+            # defaults to 0.0, reverse no sequences.
+            self.reverse_probability = (
+                kwargs.get("reverse_sequences_prob", 0.0) or 0.0
+            )  # handle possible None value.
+            if self.reverse_probability > 0.0:
+                log.info(
+                    f"Data Augmentation: Reversing {self.reverse_probability*100}% random sequences."
+                )
+        else:
+            # only reverse training data.
+            self.reverse_probability = 0.0
 
         with ThreadPoolExecutor() as executor:
             # create a {key: tensor} from {key: numpy} dict.
@@ -79,6 +95,11 @@ class MyTensorDataset(Dataset[Dict[str, Tensor]]):
             self.pprocessor = PreProcess(percentiles=self.train_percentiles, minmax=self.minmax)
             self._normalize_tensors()
 
+    @staticmethod
+    def _reverse_sequence(sequence: Tensor, dim_to_flip: int):
+        """Reverse a tensor sequence on a certain dimension to help regularise the model."""
+        return torch.flip(sequence, dims=[dim_to_flip])
+
     def _normalize_tensors(self):
         """Normalise the data using the self.pprocessor object."""
         # TODO: maybe do this on the fly for memory.
@@ -86,7 +107,14 @@ class MyTensorDataset(Dataset[Dict[str, Tensor]]):
             self.tensors[key] = self.pprocessor.apply_preprocessing(tensor)
 
     def __getitem__(self, index):
-        return {key: tensor[index] for key, tensor in self.tensors.items()}
+        sample = {key: tensor[index] for key, tensor in self.tensors.items()}
+
+        # TODO: this is harcoded to only work for the 'dynamics' key.
+        # data augmentation (only applies to training data if set).
+        if torch.rand(1) < self.reverse_probability:
+            sample["dynamics"] = self._reverse_sequence(sequence=sample["dynamics"], dim_to_flip=0)
+
+        return sample
 
     def __len__(self):
         return self.dataset_size

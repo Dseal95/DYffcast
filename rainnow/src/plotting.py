@@ -134,6 +134,7 @@ def geoplot_raw_imerg_xarray_tile(
 
     return fig, ax
 
+
 def add_bounding_box_to_plot(
     ax: plt.Axes,
     xs: List[float],

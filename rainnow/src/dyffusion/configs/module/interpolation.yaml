@@ -7,5 +7,5 @@ defaults:
 module:
   _target_: rainnow.src.dyffusion.experiment_types.interpolation.InterpolationExperiment
   stack_window_to_channel_dim: True
-  experiment_type: interpolation                                           # overwrite .experiment_type in _base_experiment_config.yaml.
-  monitor: "val/${datamodule.horizon}h_avg/${module.experiment_type}/mse"  # defaults to mse. Overridden in train.py.
+  experiment_type: interpolation                                            # overwrite .experiment_type in _base_experiment_config.yaml.
+  monitor: "val/${datamodule.horizon}h_avg/${module.experiment_type}/crps"  # defaults to mse. Overridden in train.py.

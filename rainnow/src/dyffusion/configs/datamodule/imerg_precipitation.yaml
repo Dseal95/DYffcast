@@ -8,12 +8,11 @@ verbose: True
 persistent_workers: False                  # can speed up training. Default is False.
 # imerg info:
 # this needs to point to the data dir where data is being loaded from.
-# data_dir: "/Users/ds423/git_uni/dyffusion/data/"                # local machine.
-data_dir: "/Volumes/external_disk_seal/data/imerg_datasets"       # external harddrive.
-# data_dir: "/teamspace/studios/this_studio/data"                 # lightning AI.
-# data_dir: "/rds/general/user/ds423/home/rainnow/data/"          # imperial HPC.
+# data_dir: "/Volumes/external_disk_seal/data/imerg_datasets"       # external harddrive.
+data_dir: "/teamspace/studios/this_studio/data"                   # lightning AI.
+# data_dir: "/rds/general/user/ds423/home/rainnow/data/"            # imperial HPC.
 
-boxes: ["1,0"] 
+boxes: ["1,0"]
 # boxes: ["0,0", "1,0", "2,0", "2,1"]
 window: 1
 horizon: 8
@@ -34,6 +33,9 @@ normalization:
   percentiles: [0.0, 5.670000076293945]    # 1st and 99th percentiles based on raw training data.
   min_max: [0.0, 3.23434630590838]         # min and max of the training data after log scale + linear transformed.
 
+data_augmentation:
+  reverse_sequences_prob: null # 0.1  # the % of sequences that you want to reverse. Set to None if want to apply no reversal.
+
 # train, val and test data splits. dt lims are not inclusive.
 # null means no lower or upper bound.
 data_splits:
@@ -43,4 +45,4 @@ data_splits:
   # a predict slice is a 'known' example that you want to predict on.
   # it will be removed from the 'train' and 'val' datasets and accessible via _data_predict.
   # it is a chosen test case.
-  predict: ["2023-03-08 00:00:00", "2023-03-10 00:00:00"]  # 8th/9th Mar-2023
+  predict: ["2023-03-07 00:00:00", "2023-03-10 00:00:00"]  # 8th/9th Mar-2023

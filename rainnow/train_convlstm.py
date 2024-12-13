@@ -21,41 +21,43 @@ from rainnow.src.conv_lstm_utils import (
 from rainnow.src.models.conv_lstm import ConvLSTMModel
 from rainnow.src.utilities.loading import load_imerg_datamodule_from_config
 from rainnow.src.utilities.utils import generate_alphanumeric_id, get_device, get_logger
+from rainnow.src.loss import LPIPSMSELoss
+from rainnow.src.normalise import PreProcess
+
+
+# TODO: abstract this all out into a training config.
+# ** DIRs **
+# CKPT_BASE_PATH = "/teamspace/studios/this_studio/DYffcast/rainnow/results/"
+# CONFIGS_BASE_PATH = "/teamspace/studios/this_studio/DYffcast/rainnow/src/dyffusion/configs/"
+CKPT_BASE_PATH = "/rds/general/user/ds423/home/rainnow/results/"
+CONFIGS_BASE_PATH = "/rds/general/user/ds423/home/rainnow/src/dyffusion/configs/"
 
 # ** data params **
-BOXES = ["1,0"]
+BOXES = ["0,0", "1,0", "2,0", "2,1"]
 WINDOW = 1
 HORIZON = 8
 DT = 1
-BATCH_SIZE = 8
+BATCH_SIZE = 12
 NUM_WORKERS = 0
-
-CKPT_BASE_PATH = "/Users/ds423/git_uni/irp-ds423/rainnow/results/"
-# CKPT_BASE_PATH = "/teamspace/studios/this_studio/irp-ds423/rainnow/results/"
-# CKPT_BASE_PATH = "/rds/general/user/ds423/home/rainnow/results/"
-
-CONFIGS_BASE_PATH = "/Users/ds423/git_uni/irp-ds423/rainnow/src/dyffusion/configs/"
-# CONFIGS_BASE_PATH = "/teamspace/studios/this_studio/irp-ds423/rainnow/src/dyffusion/configs/"
-# CONFIGS_BASE_PATH = "/rds/general/user/ds423/home/rainnow/src/dyffusion/configs/"
 
 # ** modelling params **
 KERNEL_SIZE = (5, 5)
 INPUT_DIMS = (1, 128, 128)  # C, H, W
-HIDDEN_CHANNELS = [64, 64]
+HIDDEN_CHANNELS = [128, 128]
 OUTPUT_CHANNELS = 1
 NUM_LAYERS = 2
-OUTPUT_SEQUENCE_LENGTH = 4
-INPUT_SEQUENCE_LENGTH = 5
+INPUT_SEQUENCE_LENGTH = 4
+OUTPUT_SEQUENCE_LENGTH = 1
 APPLY_BATCHNORM = True
 CELL_DROPOUT = 0.3
-OUTPUT_ACTIVATION = nn.Sigmoid()
+OUTPUT_ACTIVATION = nn.Tanh()  # nn.Sigmoid()
+
 # ** training params **
-LR = 3e-4
+LR = 1e-4
 WEIGHT_DECAY = 1e-5
 SCHEDULER_FACTOR = 0.1
-SCHEDULER_PATIENCE = 10
-CRITERION = nn.BCELoss(reduction="mean")
-NUM_EPOCHS = 2
+SCHEDULER_PATIENCE = 5
+NUM_EPOCHS = 30
 
 
 def main(ckpt_path: str = None):
@@ -147,6 +149,23 @@ def main(ckpt_path: str = None):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer=optimizer, mode="min", factor=SCHEDULER_FACTOR, patience=SCHEDULER_PATIENCE
     )
+
+    # ** instantiate the preprocesser obj **
+    pprocessor = PreProcess(
+        percentiles=datamodule.normalization_hparams["percentiles"],
+        minmax=datamodule.normalization_hparams["min_max"],
+    )
+    # setup loss.
+    CRITERION = nn.BCELoss(reduction="mean")
+    CRITERION = LPIPSMSELoss(
+        alpha=0.6,
+        model_name="alex",  # trains better with 'alex' - https://github.com/richzhang/PerceptualSimilarity.
+        reduction="mean",
+        gamma=1.0,
+        mse_type="cb",
+        **{"beta": 1, "data_preprocessor_obj": pprocessor},
+    ).to(device)
+
     # debug info.
     log.info("** model params **")
     log.info(f"input={INPUT_SEQUENCE_LENGTH} | target={OUTPUT_SEQUENCE_LENGTH}.")

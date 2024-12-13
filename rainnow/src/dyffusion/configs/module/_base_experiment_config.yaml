@@ -12,7 +12,7 @@ module:
   use_ema: False                  # whether to use exponential moving average of model weights for evaluation
   ema_decay: 0.9999               # decay rate for exponential moving average (only used if ``use_ema=True``)
   enable_inference_dropout: True  # null or bool
-  num_predictions: 10             # number of predictions/samples/ensemble members to make for each batch element
+  num_predictions: 8              # number of predictions/samples/ensemble members to make for each batch element
   prediction_inputs_noise: 0.0    # perturbation noise to add to the inputs before predicting
   logging_infix: ""               # infix to add to the metric keys when logging to wandb
   verbose: ${verbose}

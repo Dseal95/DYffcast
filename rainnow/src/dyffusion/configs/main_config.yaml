@@ -42,5 +42,5 @@ torch_matmul_precision: "high"   # choose from "highest", "high", "medium" for s
 # name of the run - good to use along with experiment_types mode
 name: 'ImergPrecipitation-${module.experiment_type}-MH${datamodule.horizon}-BS${datamodule.batch_size}-DYffusion'
 
-name_suffix: 'test'  # will be appended to the name
+name_suffix: 'test'   # will be appended to the name
 suffix: null          # will be appended after all hyperparameters IDs and other suffixes

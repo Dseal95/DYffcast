@@ -3,13 +3,18 @@ diffusion:
   _target_: rainnow.src.dyffusion.diffusion.dyffusion.DYffusion  
   # a trained interpolated path needs to be given.
   interpolator_checkpoint_id: "interpolation-cc2yoiyi" # "interpolation-lndwhf39" #  "interpolation-pmfexw2m" # "interpolation-lndwhf39" #   # "interpolation-lndwhf39"  #
-  interpolator_checkpoint_base_path: "/Users/ds423/git_uni/irp-ds423/rainnow/results/interpolation_experiments"
-  # interpolator_checkpoint_base_path: "/teamspace/studios/this_studio/irp-ds423/rainnow/results/"
+  # interpolator_checkpoint_base_path: "/Users/ds423/git_personal/DYffcast/rainnow/results/interpolation_experiments"
+  interpolator_checkpoint_base_path: "/teamspace/studios/this_studio/DYffcast/rainnow/results/"
   # interpolator_checkpoint_base_path: "/rds/general/user/ds423/home/rainnow/results/"
 
   # Contribution of the loss term to the total loss.
   lambda_reconstruction: 0.5    # corresponds to the main loss term (diffusion loss)
   lambda_reconstruction2: 0.5   # corresponds to the auxiliary loss term that simulates one step of the diffusion process
+  initial_forecast_linear_schedule:
+    apply_schedule: True  # swtich to False (or None) to avoid having a schedule.
+    schedule_start: 1
+    schedule_end: 0
+    num_epochs_decay: 20
 
   # How to condition the forecaster network. Options: "none", "data", "data+noise"
   # If "data", condition on the input data (i.e., the initial conditions at time t0)
@@ -22,7 +27,7 @@ diffusion:
   schedule: 'linear' # 'before_t1_only'     # If 'before_t1_only', all auxiliary diffusion steps are added before t1
   additional_interpolation_steps: 0   # k, how many additional diffusion steps to add. Only used if schedule='before_t1_only'
   additional_interpolation_steps_factor: 0   # only use if schedule='linear'
-  interpolate_before_t1: False.       # Whether to interpolate before t1 too. Must be true if schedule='before_t1_only'
+  interpolate_before_t1: False       # Whether to interpolate before t1 too. Must be true if schedule='before_t1_only'
 
   # Time encoding refers to the way the time is encoded for the forecaster network for a given diffusion step.
   time_encoding: "dynamics"           # Options: "dynamics", "discrete". Recommended: "dynamics", i.e. use actual timestep

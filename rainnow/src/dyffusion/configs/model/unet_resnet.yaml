@@ -20,10 +20,10 @@ model:
   apply_batchnorm: True      # apply batch norm after input and encoder / decoder layers.
   apply_layernorm_after_attn: True
   # dropout rates:
-  input_dropout: 0.0
-  block_dropout1: 0.1        
-  block_dropout: 0.3
-  attn_dropout: 0.1    
+  input_dropout: 0.3
+  block_dropout1: 0.2        
+  block_dropout: 0.6
+  attn_dropout: 0.6    
   with_time_emb: True        # true if using time embedding.
   keep_spatial_dims: False   # If True, no down/up-sampling is performed
   outer_sample_mode: null    # "bilinear" or "nearest" or None (=no upsampling)

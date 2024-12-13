@@ -725,6 +725,7 @@ class DYffusion(BaseDYffusion):
         interpolator_checkpoint_base_path: Optional[str],
         lambda_reconstruction: float = 1.0,
         lambda_reconstruction2: float = 0.0,
+        initial_forecast_linear_schedule: Optional[dict] = None,
         *args,
         **kwargs,
     ):
@@ -738,9 +739,19 @@ class DYffusion(BaseDYffusion):
             "Please provide str in dyffusion.yaml config file."
         )
 
-        # loss weightings.
+        # training loss params.
         self.lam1 = lambda_reconstruction
         self.lam2 = lambda_reconstruction2
+        self.init_fcast_linear_schedule = initial_forecast_linear_schedule
+
+        # extract the schedule infomation to class attrs.
+        if self.init_fcast_linear_schedule:
+            self.apply_schedule = True
+            self.schedule_start = self.init_fcast_linear_schedule["schedule_start"]
+            self.schedule_end = self.init_fcast_linear_schedule["schedule_end"]
+            self.num_epochs_to_zero = self.init_fcast_linear_schedule["num_epochs_decay"]
+        else:
+            self.apply_schedule = False
 
         # load in a trained interpolator.
         self.interpolator_ckpt_id = interpolator_checkpoint_id
@@ -854,14 +865,17 @@ class DYffusion(BaseDYffusion):
         float
             The computed total loss.
         """
-        # simple linear schedule to warm up the realstic predictions.
-        # after n_to_zero epochs, we optimise the entire loss.
-        # 20 hardcoded. #TODO: make this an attr in .yaml params.
-        n_to_zero = 20
-        if self.current_epoch <= n_to_zero:
-            alpha = 1.0 - (self.current_epoch * (1 / n_to_zero))
+        # initial forecast loss weighting.
+        if self.apply_schedule:
+            # simple linear schedule to warm up the realstic predictions.
+            # after n_to_zero epochs, we optimise the entire loss. The initial forcast is implicit in the total loss.
+            if self.current_epoch <= self.num_epochs_to_zero:
+                alpha = self.schedule_start - (self.current_epoch * (1 / self.num_epochs_to_zero))
+            else:
+                alpha = self.schedule_end
         else:
-            alpha = 0.0
+            # default to equally weighted initial loss, exisitng forecast loss.
+            alpha = 0.5
 
         # ensure targets are correct data range.
         # don't want to modify xt_last as is it in raw data range and is used in interpolator.
