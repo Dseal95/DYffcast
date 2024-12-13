@@ -9,7 +9,7 @@ This work extends the probabilistic spatio-temporal forecasting framework, **DYf
 
 <div style="text-align: center;">
   <img src="readme_cyclone_yaku_forecasts.png" alt="Cyclone Yaku Evolution" />
-  <p><em>The evolution of Cyclone Yaku over 4 hours, showing undersampled intervals of 1-hour, beginning at 03:00 UTC on March 9, 2023. From top to bottom: Ground truth IMERG data (1<sup>st</sup> row), DYffusion<sub>LCB</sub> (2<sup>nd</sup> row), DYffusion<sub>L1</sub> (3<sup>rd</sup> row), ConvLSTM<sub>LCB</sub> (4<sup>th</sup> row) and ConvLSTM<sub>BCE</sub> (5<sup>th</sup> row).</em></p>
+  <p><em>The evolution of Cyclone Yaku over 4 hours, showing undersampled intervals of 1-hour, beginning at 03:00 UTC on March 9, 2023. From top to bottom: Ground truth IMERG data (1<sup>st</sup> row), DYffusion<sub>LCB</sub> (2<sup>nd</sup> row), DYffusion<sub>L1</sub> (3<sup>rd</sup> row), ConvLSTM<sub>LCB</sub> (4<sup>th</sup> row),  ConvLSTM<sub>BCE</sub> (5<sup>th</sup> row) and STEPS nowcast method implemented in PySteps.</em></p>
 </div>
 
 
