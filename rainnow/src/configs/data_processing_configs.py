@@ -30,10 +30,10 @@ data_processing_config = {
 }
 
 sequencing_config = {
-    "sequence_length": 15,  # 8,  # 4,  # the *total sequence length* = sequence_length + h
-    "horizon": 1,
+    "sequence_length": 4,  # 8,  # 4,  # the *total sequence length* = sequence_length + h
+    "horizon": 1,  # h
     "dt": 1,  # intervals between consecutive imerg tiles.
-    "stride": 16,  # no overlap if stride = h + seq_length (mimicing for DYffusion).
+    "stride": 5,  # no overlap if stride = h + seq_length (mimicing for DYffusion).
     "pixel_threshold": 0.1,
     "file_suffix": f"_cropped_{PATCH_SIZE}_patched",
     "file_type": ".h5",
