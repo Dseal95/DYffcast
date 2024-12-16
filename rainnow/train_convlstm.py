@@ -11,57 +11,25 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from rainnow.src.conv_lstm_utils import (
-    IMERGDataset,
-    plot_training_val_loss,
-    save_checkpoint,
-    train,
-    validate,
-)
-from rainnow.src.models.conv_lstm import ConvLSTMModel
-from rainnow.src.utilities.loading import load_imerg_datamodule_from_config
-from rainnow.src.utilities.utils import generate_alphanumeric_id, get_device, get_logger
+from rainnow.src.configs.convlstm_train_config import trainer as config
+from rainnow.src.convlstm_trainer import save_checkpoint, train, validate
+from rainnow.src.datasets import IMERGDataset
 from rainnow.src.loss import LPIPSMSELoss
+from rainnow.src.models.conv_lstm import ConvLSTMModel
 from rainnow.src.normalise import PreProcess
+from rainnow.src.plotting import plot_training_val_loss
+from rainnow.src.utilities.loading import load_imerg_datamodule_from_config
+from rainnow.src.utilities.utils import (generate_alphanumeric_id, get_device,
+                                         get_logger)
 
-
-# TODO: abstract this all out into a training config.
 # ** DIRs **
-# CKPT_BASE_PATH = "/teamspace/studios/this_studio/DYffcast/rainnow/results/"
-# CONFIGS_BASE_PATH = "/teamspace/studios/this_studio/DYffcast/rainnow/src/dyffusion/configs/"
-CKPT_BASE_PATH = "/rds/general/user/ds423/home/rainnow/results/"
-CONFIGS_BASE_PATH = "/rds/general/user/ds423/home/rainnow/src/dyffusion/configs/"
-
-# ** data params **
-BOXES = ["0,0", "1,0", "2,0", "2,1"]
-WINDOW = 1
-HORIZON = 8
-DT = 1
-BATCH_SIZE = 12
-NUM_WORKERS = 0
-
-# ** modelling params **
-KERNEL_SIZE = (5, 5)
-INPUT_DIMS = (1, 128, 128)  # C, H, W
-HIDDEN_CHANNELS = [128, 128]
-OUTPUT_CHANNELS = 1
-NUM_LAYERS = 2
-INPUT_SEQUENCE_LENGTH = 4
-OUTPUT_SEQUENCE_LENGTH = 1
-APPLY_BATCHNORM = True
-CELL_DROPOUT = 0.3
-OUTPUT_ACTIVATION = nn.Tanh()  # nn.Sigmoid()
-
-# ** training params **
-LR = 1e-4
-WEIGHT_DECAY = 1e-5
-SCHEDULER_FACTOR = 0.1
-SCHEDULER_PATIENCE = 5
-NUM_EPOCHS = 30
+BASE_PATH = "/teamspace/studios/this_studio/DYffcast/"  # /rds/general/user/ds423/home
+CKPT_BASE_PATH = f"{BASE_PATH}/DYffcast/rainnow/results/"
+CONFIGS_BASE_PATH = f"{BASE_PATH}/DYffcast/rainnow/src/dyffusion/configs/"
 
 
 def main(ckpt_path: str = None):
-    """"""
+    """Wrapper function to train a ConvLSTM model."""
     # instantiate logger and get device.
     log = get_logger(log_file_name=None, name=__name__)
     device = get_device()
@@ -78,56 +46,61 @@ def main(ckpt_path: str = None):
         cfg_base_path=CONFIGS_BASE_PATH,
         cfg_name="imerg_precipitation.yaml",
         overrides={
-            "boxes": BOXES,
-            "window": WINDOW,
-            "horizon": HORIZON,
-            "prediction_horizon": HORIZON,
-            "sequence_dt": DT,
+            "boxes": config["data"]["boxes"],
+            "window": config["data"]["window"],
+            "horizon": config["data"]["horizon"],
+            "prediction_horizon": config["data"]["horizon"],
+            "sequence_dt": config["data"]["dt"],
         },
     )
     datamodule.setup("fit")
 
     # debug info.
     log.info("** datamodule params **")
-    log.info(f"boxes={BOXES} | window={WINDOW} | horizon={HORIZON}.")
+    log.info(
+        f"boxes={config['data']['boxes']} | window={config['data']['window']} | horizon={config['data']['horizon']}."
+    )
 
     # create datasets.
     train_dataset = IMERGDataset(
-        datamodule, "train", sequence_length=INPUT_SEQUENCE_LENGTH, target_length=OUTPUT_SEQUENCE_LENGTH
+        datamodule,
+        "train",
+        sequence_length=config["model"]["input_sequence_length"],
+        target_length=config["model"]["output_sequence_length"],
     )
     val_dataset = IMERGDataset(
         datamodule,
         "validate",
-        sequence_length=INPUT_SEQUENCE_LENGTH,
-        target_length=OUTPUT_SEQUENCE_LENGTH,
+        sequence_length=config["model"]["input_sequence_length"],
+        target_length=config["model"]["output_sequence_length"],
     )
 
     # create dataloaders.
     train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=datamodule.hparams.batch_size,
-        num_workers=NUM_WORKERS,
+        num_workers=config["data"]["num_workers"],
         shuffle=True,
     )
     val_loader = DataLoader(
         dataset=val_dataset,
         batch_size=datamodule.hparams.batch_size,
-        num_workers=NUM_WORKERS,
+        num_workers=config["data"]["num_workers"],
         shuffle=False,
     )
 
     # instantiate model.
     model = ConvLSTMModel(
-        input_sequence_length=INPUT_SEQUENCE_LENGTH,
-        output_sequence_length=OUTPUT_SEQUENCE_LENGTH,
-        input_dims=INPUT_DIMS,
-        hidden_channels=HIDDEN_CHANNELS,
-        output_channels=OUTPUT_CHANNELS,
-        num_layers=NUM_LAYERS,
-        kernel_size=KERNEL_SIZE,
-        output_activation=OUTPUT_ACTIVATION,
-        apply_batchnorm=APPLY_BATCHNORM,
-        cell_dropout=CELL_DROPOUT,
+        input_sequence_length=config["model"]["input_sequence_length"],
+        output_sequence_length=config["model"]["output_sequence_length"],
+        input_dims=config["model"]["input_dims"],
+        hidden_channels=config["model"]["hidden_channels"],
+        output_channels=config["model"]["output_channels"],
+        num_layers=config["model"]["num_layers"],
+        kernel_size=config["model"]["kernel_size"],
+        output_activation=config["model"]["output_activation"],
+        apply_batchnorm=config["model"]["apply_batchnorm"],
+        cell_dropout=config["model"]["cell_dropout"],
         device=device,
     )
     model = model.to(device)
@@ -145,9 +118,16 @@ def main(ckpt_path: str = None):
             return
 
     # set up optimizers and scheduler.
-    optimizer = torch.optim.AdamW(params=model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    optimizer = torch.optim.AdamW(
+        params=model.parameters(),
+        lr=config["training"]["lr"],
+        weight_decay=config["training"]["weight_decay"],
+    )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer=optimizer, mode="min", factor=SCHEDULER_FACTOR, patience=SCHEDULER_PATIENCE
+        optimizer=optimizer,
+        mode="min",
+        factor=config["training"]["scheduler_factor"],
+        patience=config["training"]["scheduler_patience"],
     )
 
     # ** instantiate the preprocesser obj **
@@ -156,6 +136,7 @@ def main(ckpt_path: str = None):
         minmax=datamodule.normalization_hparams["min_max"],
     )
     # setup loss.
+    # CBLoss need to instantiate it here as requires pprocessor to scale the nodes.
     CRITERION = nn.BCELoss(reduction="mean")
     CRITERION = LPIPSMSELoss(
         alpha=0.6,
@@ -167,21 +148,26 @@ def main(ckpt_path: str = None):
     ).to(device)
 
     # debug info.
+    # fmt: off
     log.info("** model params **")
-    log.info(f"input={INPUT_SEQUENCE_LENGTH} | target={OUTPUT_SEQUENCE_LENGTH}.")
-    log.info(f"inputs dims={INPUT_DIMS} | output channels={OUTPUT_CHANNELS}.")
-    log.info(f"hidden channels={HIDDEN_CHANNELS} | num layers={NUM_LAYERS}.")
-    log.info(f"kernel size={KERNEL_SIZE} | output activation={OUTPUT_ACTIVATION}.")
-    log.info(f"batchnorm = {APPLY_BATCHNORM} | cell dropout={CELL_DROPOUT}.")
+    log.info(f"input={config['model']['input_sequence_length']} | target={config['model']['output_sequence_length']}.")
+    log.info(f"inputs dims={config['model']['input_dims']} | output channels={config['model']['output_channels']}.")
+    log.info(f"hidden channels={config['model']['hidden_channels']} | num layers={config['model']['num_layers']}.")
+    log.info(f"kernel size={config['model']['kernel_size']} | output activation={config['model']['output_activation']}.")
+    log.info(f"batchnorm = {config['model']['apply_batchnorm']} | cell dropout={config['model']['cell_dropout']}.")
     log.info("** training params **")
-    log.info(f"learning rate = {LR} | weight decay = {WEIGHT_DECAY} | num epochs = {NUM_EPOCHS}.")
+    log.info(f"learning rate = {config['training']['lr']} | \
+             weight decay = {config['training']['weight_decay']} | num epochs = {config['training']['num_epochs']}.")
     log.info(f"loss function = {CRITERION.__class__.__name__}.\n")
-
+    # fmt: on
+    
     # training and validation.
     model_save_path = Path(os.path.join(save_dir, f"{run_id}.pt"))
     train_losses, val_losses = [], []
-    with tqdm(total=len(train_loader) * NUM_EPOCHS, desc="Training", unit="batch") as tepoch:
-        for i in range(NUM_EPOCHS):
+    with tqdm(
+        total=len(train_loader) * config["training"]["num_epochs"], desc="Training", unit="batch"
+    ) as tepoch:
+        for i in range(config["training"]["num_epochs"]):
             logs = {}
             train_loss = train(
                 model=model,
@@ -190,7 +176,7 @@ def main(ckpt_path: str = None):
                 criterion=CRITERION,
                 tepoch=tepoch,
                 curr_epoch=i,
-                n_epochs=NUM_EPOCHS,
+                n_epochs=config["training"]["num_epochs"],
                 device=device,
                 log_training=True,
             )
@@ -215,7 +201,7 @@ def main(ckpt_path: str = None):
                         val_loss=val_loss,
                     )
             # save the last epoch.
-            if i == (NUM_EPOCHS - 1):
+            if i == (config["training"]["num_epochs"] - 1):
                 save_checkpoint(
                     model_weights=model.state_dict(),
                     optimizer_info=optimizer.state_dict(),
