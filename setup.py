@@ -7,7 +7,7 @@ setup(
     name="rainnow",
     version="1.0",
     description="Precipitation Nowcasting Tool",
-    author="ds423@ic.ac.uk",
+    author="dan.seal.06@gmail.com",
     packages=find_packages(),
     install_requires=requirements,
 )
