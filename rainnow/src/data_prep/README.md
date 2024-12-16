@@ -1,4 +1,4 @@
-# 🪈 IMERG Data Pipeline
+# 🛰️ IMERG Data Pipeline
 
 This directory contains scripts for **downloading**, **processing** and **sequencing** the `IMERG` data. See **Usage** section for instructions on how to execute the Data Pipeline.
 
