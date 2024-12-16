@@ -106,7 +106,7 @@ Please see `rainnow/notebooks/README.md` and `rainnow/src/data_prep/README.md` f
 1. To clone the GitHub repository, run the following code in your terminal at a chosen directory:
 
    ```bash
-   git clone https://github.com/edsml-ds423/irp-diffusion-rainfall.git
+   git clone https://github.com/Dseal95/DYffcast.git
    ```
 
 2. Navigate to the cloned project directory and run the `env_setup.sh` shell script to set up the conda environment:
