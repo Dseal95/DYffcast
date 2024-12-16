@@ -1,7 +1,4 @@
-"""A utilities module for the training and inference of a ConvLSTM.
-
-For simplicity, all of the functions required to train and validate a ConvLSTM are in here.
-"""
+"""A train/eval utilities module for the training and inference of a ConvLSTM."""
 
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -15,77 +12,6 @@ from tqdm import tqdm
 from rainnow.src.dyffusion.datamodules.imerg_precipitation import IMERGPrecipitationDataModule
 from rainnow.src.models.conv_lstm import ConvLSTMModel
 from rainnow.src.utilities.utils import transform_0_1_to_minus1_1, transform_minus1_1_to_0_1
-
-
-class IMERGDataset(Dataset):
-    """
-    A wrapper around the IMERGPrecipitationDataModule, extending it to torch.Dataset.
-
-    The IMERGPrecipitationDataModule needs to have run it's class method .setup() to ensure
-    that the _data_<split> methods contain the data.
-    The data will inherit any normalisation from IMERGPrecipitationDataModule().
-
-    Parameters
-    ----------
-    imerg_datamodule : IMERGPrecipitationDataModule
-        The data module containing IMERG precipitation data.
-    split : str
-        The dataset split to use. Must be one of 'train', 'validate', 'test', or 'predict'.
-    sequence_length : int
-        The length of the input sequence.
-    target_length : int
-        The length of the target sequence.
-    """
-
-    def __init__(
-        self,
-        imerg_datamodule: IMERGPrecipitationDataModule,
-        split: str,
-        sequence_length: int,
-        target_length: int,
-        reverse_probability: float = 0.0,
-    ):
-        """Initialisation."""
-        # inputs.
-        self.datamodule = imerg_datamodule
-        self.sequence_length = sequence_length
-        self.target_length = target_length
-        assert self.sequence_length >= self.target_length
-
-        # data augmentation.
-        self.reverse_probability = reverse_probability  # [0, 1].
-
-        # handle splits.
-        if split == "train":
-            self.data = self.datamodule._data_train
-        elif split == "validate":
-            self.data = self.datamodule._data_val
-        elif split == "test":
-            self.data = self.datamodule._data_test
-        elif split == "predict":
-            self.data = self.datamodule._data_predict
-        else:
-            raise ValueError()
-
-    @staticmethod
-    def _reverse_sequence(sequence: Tensor, dim_to_flip: int):
-        """Reverse a tensor sequence on a certain dimension to help regularise the model."""
-        return torch.flip(sequence, dims=[dim_to_flip])
-
-    # TODO: unit test this.
-    def __getitem__(self, idx):
-        sequence = self.data.__getitem__(idx)["dynamics"]
-
-        if torch.rand(1) < self.reverse_probability:
-            sequence = self._reverse_sequence(sequence=sequence, dim_to_flip=0)
-
-        inputs = sequence[-(self.sequence_length + self.target_length) : -self.target_length, ...]
-        target = sequence[-self.target_length :, ...]
-
-        return inputs, target
-
-    def __len__(self):
-        return self.data.__len__()
 
 
 def train(
@@ -246,93 +172,6 @@ def save_checkpoint(
         },
         model_save_path,
     )
-
-
-def plot_training_val_loss(
-    train_losses: List[float],
-    val_losses: List[float],
-    criterion_name: str,
-    figsize: Dict[str, Any] = (8, 6),
-) -> plt.Figure:
-    """
-    Plot the training and validation loss curves.
-
-    Parameters
-    ----------
-    train_losses : list or array-like
-        The training loss values for each epoch.
-    val_losses : list or array-like
-        The validation loss values for each epoch.
-    criterion_name : str
-        The name of the loss criterion (e.g., 'MSE', 'Cross Entropy').
-    figsize : tuple, optional
-        The figure size in inches (width, height). Default is (8, 6).
-
-    Returns
-    -------
-    fig : plt.Figure
-        The generated figure object containing the plot.
-    """
-
-    num_epochs = [i for i in range(len(train_losses))]
-    fig, ax = plt.subplots(figsize=figsize)
-    ax.plot(num_epochs, train_losses, color="C0", label="train loss")
-    ax.plot(num_epochs, val_losses, color="C1", label="val loss")
-    ax.set_ylabel(f"{criterion_name}")
-    ax.set_xlabel("epochs")
-    ax.legend(loc="best")
-
-    return fig
-
-
-def plot_predicted_sequence(
-    X: torch.Tensor,
-    target: torch.Tensor,
-    pred: torch.Tensor,
-    batch_num: int,
-    plot_params: Dict[str, Any],
-    figsize: Tuple[float, float],
-) -> None:
-    """
-    Plot the input sequence, target sequence, and predicted sequence.
-
-    This function creates a visualization of the input sequence, the target sequence,
-    and the predicted sequence for a specific batch.
-
-    Parameters
-    ----------
-    X : torch.Tensor
-        The input sequence tensor of shape (batch_size, input_sequence_len, channels, height, width).
-    target : torch.Tensor
-        The target sequence tensor of shape (batch_size, target_sequence_len, channels, height, width).
-    pred : torch.Tensor
-        The predicted sequence tensor of shape (batch_size, target_sequence_len, channels, height, width).
-    batch_num : int
-        The index of the batch to plot.
-    plot_params : Dict[str, Any]
-        A dictionary of parameters to pass to the imshow function.
-    figsize : Tuple[float, float]
-        The figure size in inches (width, height).
-
-    Returns
-    -------
-    None
-    """
-    input_sequence_len = X.size(1)
-    target_sequence_len = target.size(1)
-    nrows = 2
-    fig, axs = plt.subplots(nrows=nrows, ncols=input_sequence_len + target_sequence_len, figsize=figsize)
-    for i in range(input_sequence_len + target_sequence_len):
-        if i < input_sequence_len:
-            axs[0, i].imshow(X[batch_num, i, 0, :, :], **plot_params)
-        else:
-            axs[0, i].imshow(target[batch_num, i - input_sequence_len, 0, :, :], **plot_params)
-            axs[1, i].imshow(pred[batch_num, i - input_sequence_len, 0, :, :], **plot_params)
-
-    for ax in axs.flatten():
-        ax.axis("off")
-
-    plt.tight_layout()
 
 
 def create_eval_loader(
