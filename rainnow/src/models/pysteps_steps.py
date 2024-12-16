@@ -11,7 +11,7 @@ from pysteps import motion, nowcasts
 from pysteps.utils import transformation
 
 
-class PyStepsNowcastModel:
+class PyStepsSTEPSNowcastModel:
     """STEPS Probabilistic Nowcast Model wrapper for precipitation forecasting.
 
     Handles precipitation data in (S, C, H, W) format and produces ensemble nowcasts

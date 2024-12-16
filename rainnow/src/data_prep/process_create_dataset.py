@@ -125,8 +125,7 @@ def main(start_time, end_time, dataset_save_dir, sequence_files, config, imerg_c
         )
 
         file_save_path = os.path.join(
-            dataset_save_dir,
-            f"imerg.box.{i}.{j}.{config['patch_size']}.dt{config['dt']}.sequenced.{str(seq_start_date)}.{str(seq_end_date)}.nc",
+            f"imerg.box.{i}.{j}.{config['patch_size']}.dt{config['dt']}.s{config['sequence_length']+config['horizon']}.sequenced.{str(seq_start_date)}.{str(seq_end_date)}.nc",
         )
 
         log.info(f"box (i, j) = ({i}, {j}).")
@@ -173,10 +172,10 @@ if __name__ == "__main__":
     # TODO: make this more dynamic.
     # hardcoded for simplicity.
     sequence_files = [
-        "sequences/2020-01-01_2024-01-01_i0_j0_s15_h1_dt1_str16_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i0_j0_s15_h1_dt1_str16_thr0.1_PS_128.csv",
-        "sequences/2020-01-01_2024-01-01_i1_j0_s15_h1_dt1_str16_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i1_j0_s15_h1_dt1_str16_thr0.1_PS_128.csv",
-        "sequences/2020-01-01_2024-01-01_i2_j0_s15_h1_dt1_str16_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i2_j0_s15_h1_dt1_str16_thr0.1_PS_128.csv",
-        "sequences/2020-01-01_2024-01-01_i2_j1_s15_h1_dt1_str16_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i2_j1_s15_h1_dt1_str16_thr0.1_PS_128.csv",
+        "sequences/2020-01-01_2024-01-01_i0_j0_s4_h1_dt1_str5_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i0_j0_s4_h1_dt1_str5_thr0.1_PS_128.csv",
+        "sequences/2020-01-01_2024-01-01_i1_j0_s4_h1_dt1_str5_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i1_j0_s4_h1_dt1_str5_thr0.1_PS_128.csv",
+        "sequences/2020-01-01_2024-01-01_i2_j0_s4_h1_dt1_str5_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i2_j0_s4_h1_dt1_str5_thr0.1_PS_128.csv",
+        "sequences/2020-01-01_2024-01-01_i2_j1_s4_h1_dt1_str5_thr0.1_PS_128/eligible_2020-01-01_2024-01-01_i2_j1_s4_h1_dt1_str5_thr0.1_PS_128.csv",
     ]
 
     config = IMERGEarlyRunConfig()
