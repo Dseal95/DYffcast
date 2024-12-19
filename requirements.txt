@@ -27,3 +27,4 @@ pytorch-lightning
 tensorboard
 einops
 xskillscore
+pysteps

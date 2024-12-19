@@ -7,7 +7,7 @@ conda deactivate
 # deactivate
 
 # Define the environment name as a variable
-ENV_NAME="irp_rain"
+ENV_NAME="rainnow"
 PYTHON_VERSION="3.11"
 
 # check if the environment exists and remove it
