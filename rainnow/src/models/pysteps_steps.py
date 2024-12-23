@@ -59,7 +59,7 @@ class PyStepsSTEPSNowcastModel:
         """"""
         assert (
             horizon % time_interval == 0
-        ), f"Prediction horizon is not a multiple of the data freq (min) {self.time_interval}."
+        ), f"Prediction horizon is not a multiple of the data freq (min) {time_interval}."
         return int(horizon / time_interval)
 
     @property

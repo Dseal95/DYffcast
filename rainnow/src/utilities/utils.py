@@ -391,6 +391,7 @@ def get_module(config: DictConfig, **kwargs):
     return model
 
 
+
 # ** all the functions below are taken directly from: https://github.com/Rose-STL-Lab/dyffusion/tree/main/src/utilities **
 def raise_error_if_invalid_value(value: Any, possible_values: Sequence[Any], name: str = None):
     """Raises an error if the given value (optionally named by `name`) is not one of the possible values."""
