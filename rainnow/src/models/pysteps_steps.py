@@ -59,7 +59,7 @@ class PyStepsSTEPSNowcastModel:
         """"""
         assert (
             horizon % time_interval == 0
-        ), f"Prediction horizon is not a multiple of the data freq (min) {self.time_interval}."
+        ), f"Prediction horizon is not a multiple of the data freq (min) {time_interval}."
         return int(horizon / time_interval)
 
     @property
@@ -124,7 +124,7 @@ class PyStepsSTEPSNowcastModel:
     def nowcast(
         self,
         mm_h_precip_threshold: float = 0.1,
-        dBR_precip_threshold: float = -15,
+        dBR_precip_threshold: float = -15.0,
         n_cascade_levels: int = 6,
         noise_method: str = "nonparametric",
         vel_pert_method: str = "bps",
@@ -155,11 +155,12 @@ class PyStepsSTEPSNowcastModel:
         if self.transform_mm_h_to_dBR:
             # log-transform the data from mm/h to dBR.
             # The threshold of 0.1 mm/h sets the fill value to -15 dBR.
-            R, _ = transformation.dB_transform(
+            R, metadata = transformation.dB_transform(
                 R=self.data.copy(),  # (t, h, w).
                 metadata=None,
                 threshold=mm_h_precip_threshold,  # in mm/h. Sets < threshold to 0.0.
                 zerovalue=dBR_precip_threshold,  # what zeros are set to in the new units: R[zeros] = zerovalue.
+                inverse=False,
             )
 
         else:
@@ -171,7 +172,10 @@ class PyStepsSTEPSNowcastModel:
         # get precip motion field.
         # input needs to only be 1 channel: (t, h, w).
         self.V = self.motion_field(R_channel)
-        # self.V = dense_lucaskanade(R_channel)
+
+        # from pysteps.motion.lucaskanade import dense_lucaskanade
+        # _V = dense_lucaskanade(R_channel)
+        # assert np.allclose(self.V, _V)
 
         try:
             R_f = self.nowcast_method(
@@ -180,7 +184,9 @@ class PyStepsSTEPSNowcastModel:
                 timesteps=self.num_pred_timesteps,
                 n_ens_members=self.n_ens_members,
                 n_cascade_levels=n_cascade_levels,  # using default: https://pysteps.readthedocs.io/en/latest/generated/pysteps.nowcasts.steps.forecast.html.
-                precip_thr=dBR_precip_threshold,  # remember to be in dBR units if transformed.
+                precip_thr=(
+                    dBR_precip_threshold if self.transform_mm_h_to_dBR else mm_h_precip_threshold
+                ),  # remember to be in dBR units if transformed.
                 kmperpixel=self.km_per_pixel,
                 timestep=self.time_interval,  # time step of the motion vectors (minutes).
                 noise_method=noise_method,
@@ -196,22 +202,17 @@ class PyStepsSTEPSNowcastModel:
             if R_f is not None:
                 if self.transform_mm_h_to_dBR:
                     R_f = np.nan_to_num(R_f, nan=dBR_precip_threshold)  # give NaNs zero equivalent.
-                    # transform back from dBr to mm/h.
-                    R_f = transformation.dB_transform(
+                    R_f, _ = transformation.dB_transform(
                         R=R_f,
-                        metadata=None,
-                        threshold=(
-                            10 * np.log10(mm_h_precip_threshold)
-                        ),  # convert the mm/h threshold to dBR threshold.
-                        zerovalue=0.0,
+                        metadata=metadata,
                         inverse=True,
-                    )[0]
+                    )
                 else:
                     # stay in mm/h.
+                    # convert all NaNs to 0.0 mm/h.
                     R_f = np.nan_to_num(R_f, nan=0.0)
 
         except (ValueError, RuntimeError) as e:
-
             zero_error = (
                 str(e).endswith("contains non-finite values")
                 or str(e).startswith("zero-size array to reduction operation")
@@ -221,8 +222,8 @@ class PyStepsSTEPSNowcastModel:
                 # occasional PySTEPS errors that happen with little/no precip.
                 # therefore returning all zeros makes sense.
                 print(f"\n** Error **: {str(e)}")
-                zero_value = 0.0  # current setup is to always return mm/h so zero_value is 0.0 mm/h.
-                R_f = self.zero_prediction(R=R, zero_value=zero_value)
+                # current setup is to always return mm/h so zero_value is 0.0 mm/h.
+                R_f = self.zero_prediction(R=R, zero_value=0.0)
             else:
                 raise
 

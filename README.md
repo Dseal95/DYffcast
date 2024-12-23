@@ -5,7 +5,7 @@
   <p><em>DYffusion forecasts a sequence of <i>h</i> snapshots <i>x<sub>t+i<sub>1</sub></sub> , x<sub>t+i<sub>2</sub></sub> , ... , x<sub>t+h</sub></i> given the initial condition <i>x<sub>0</sub></i>. This is analogous to how standard diffusion models are used to sample from a distribution.</em></p>
 </div>
 
-This work extends the probabilistic spatio-temporal forecasting framework, **DYffusion** (from [Rose-STL-Lab/dyffusion](https://github.com/Rose-STL-Lab/dyffusion/tree/main)) to the task of precipitation nowcasting. The aim of this study was to forecast IMERG satellite precipitation data up to a 4-hour horizon. In particular, this work focuses on Colombia, Ecuador, and Perú — countries more susceptible to increased flooding due to climate change and lacking freely available ground-based weather radar data. Additionally, a novel loss function, referred to as LCB, was introduced, combining MSE, MAE, and the LPIPS perceptual score. DYffusion trained with LCB (DYffusion<sub>LCB</sub>), outperformed three competitor models: two ConvLSTM baselines trained with LCB and binary cross-entropy (BCE) loss respecitvely and, a DYffusion model trained with its native L1 loss. The models were also evaluated on the heavy rain event, Cyclone Yaku. DYffusion<sub>LCB</sub> was able to capture the small and large scale features, generating sharp and stable forecasts up to a 2-hour horizon.
+This work extends the probabilistic spatio-temporal forecasting framework, **DYffusion** (from [Rose-STL-Lab/dyffusion](https://github.com/Rose-STL-Lab/dyffusion/tree/main)) to the task of precipitation nowcasting. The aim of this study was to forecast IMERG satellite precipitation data up to a 4-hour horizon. In particular, this work focuses on the South American countries, Colombia, Ecuador, and Perú — countries more susceptible to increased flooding due to climate change and lacking freely available ground-based weather radar data. Additionally, a novel loss function, referred to as LCB, was introduced, combining MSE, MAE, and the LPIPS perceptual score. DYffusion trained with LCB (DYffusion<sub>LCB</sub>), outperformed four competitor models: two ConvLSTM baselines trained with LCB and binary cross-entropy (BCE) loss respecitvely, a DYffusion model trained with its native L1 loss and the STEPS nowcast method. The models were also evaluated on the heavy rain event, Cyclone Yaku. DYffusion<sub>LCB</sub> was able to capture the small and large scale features, generating sharp and stable forecasts up to a 2-hour horizon.
 
 <div style="text-align: center;">
   <img src="images/readme_cyclone_yaku_forecasts.png" alt="Cyclone Yaku Evolution" />
@@ -18,6 +18,7 @@ The DYffusion code is stored in `rainnow/src/dyffusion`, for simplicity, the str
 ```
 rainnow
 ├── train.py
+├── train_convlstm.py
 └── src
     ├── dyffusion
     │   ├── configs
@@ -30,6 +31,7 @@ rainnow
     │   ├── modules
     │   ├── _base_model.py
     │   ├── conv_lstm.py
+    │   ├── pysteps_steps.py
     │   ├── unet_resnet.py
     │   └── unet.py
     ├── utilities
@@ -37,13 +39,15 @@ rainnow
     │   ├── instantiators.py
     │   ├── loading.py
     │   └── utils.py
-    ├── conv_lstm_utils.py
+    ├── convlstm_trainer.py
+    ├── datasets.py
     ├── interpolator_evaluation.py
     ├── loss.py
     ├── normalise.py
     └── plotting.py
 ```
 
+### DYffusion Training
 This project is entirely **config-driven**. You can either train an Interpolator (`I(φ)`) or a Forecaster (`F(θ)`) network using the `train.py` script. `train.py` instantiates the `main_config.yaml` file (in `dyffusion/configs`) to set up the training parameters. The `main_config.yaml` acknowledges the following (override) .yaml files: `trainer.yaml`, `model.yaml`, `diffusion.yaml`, `datamodule.yaml`, `module.yaml`, `callbacks.yaml` and `logger.yaml`, that override the `main_config.yaml` attributes on instantiation. These are all declared at the top of the `main_config.yaml` config:
 
 ```yaml
@@ -116,10 +120,10 @@ Please see `rainnow/notebooks/README.md` and `rainnow/src/data_prep/README.md` f
    source env_setup.sh
    ```
   
-This will set up the `irp_rain` conda environment.
+This will set up the `rainnow` conda environment.
 
 ## Testing 
-All unit tests can be located in the `/tests` directory. To run the tests, make sure you are in the `irp_rain` environment and run the following command:
+All unit tests can be located in the `/tests` directory. To run the tests, make sure you are in the `rainnnow` environment and run the following command:
 
 ```bash
 python -m pytest tests

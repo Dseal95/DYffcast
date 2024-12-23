@@ -12,7 +12,7 @@ from rainnow.src.dyffusion.datamodules.imerg_precipitation import IMERGPrecipita
 
 class IMERGDataset(Dataset):
     """
-    A wrapper around the IMERGPrecipitationDataModule, extending it to torch.Dataset. 
+    A wrapper around the IMERGPrecipitationDataModule, extending it to torch.Dataset.
 
     The IMERGPrecipitationDataModule needs to have run it's class method .setup() to ensure
     that the _data_<split> methods contain the data.

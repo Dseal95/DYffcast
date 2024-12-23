@@ -7,9 +7,9 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import torch
 import xarray as xr
 from cartopy.feature import NaturalEarthFeature
-import torch 
 
 
 def plot_raw_imerg_xarray_tile(
@@ -656,7 +656,6 @@ def plot_dyffusion_predictions(
 
     plt.tight_layout()
     plt.subplots_adjust(**layout_params)
-
 
 
 def plot_training_val_loss(

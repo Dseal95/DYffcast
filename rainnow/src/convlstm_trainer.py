@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import torch
-from torch import nn, optim, Tensor
+from torch import Tensor, nn, optim
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
@@ -215,7 +215,8 @@ def create_eval_loader(
             X_next, target_next = next(iter_loader)
             samples.append(torch.cat([X_next, target_next], dim=1))
         except StopIteration:
-            break  # Exit the loop when the iterator is exhausted
+            break  # Exit the loop when the iterator is exhausted.
+
     # this contains all HxW images in the dataloader.
     unravel_loader = torch.cat([i.view(-1, 1, *img_dims) for i in samples], dim=0)
 
