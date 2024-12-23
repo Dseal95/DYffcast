@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import torch
-from torch import nn, optim, Tensor
+from torch import Tensor, nn, optim
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
