@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from rainnow.src.data_processing import patch_2d_arr_into_nxn_squares
+from rainnow.src.data_prep.data_processing import patch_2d_arr_into_nxn_squares
 from rainnow.src.utilities.utils import calculate_required_1d_padding
 
 
