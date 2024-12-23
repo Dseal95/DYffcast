@@ -34,7 +34,7 @@ normalization:
   min_max: [0.0, 3.23434630590838]         # min and max of the training data after log scale + linear transformed.
 
 data_augmentation:
-  reverse_sequences_prob: null # 0.1  # the % of sequences that you want to reverse. Set to None if want to apply no reversal.
+  reverse_sequences_prob: null  # 0.1  # the % of sequences that you want to reverse. Set to None if want to apply no reversal.
 
 # train, val and test data splits. dt lims are not inclusive.
 # null means no lower or upper bound.
@@ -45,4 +45,4 @@ data_splits:
   # a predict slice is a 'known' example that you want to predict on.
   # it will be removed from the 'train' and 'val' datasets and accessible via _data_predict.
   # it is a chosen test case.
-  predict: ["2023-03-07 00:00:00", "2023-03-10 00:00:00"]  # 8th/9th Mar-2023
+  predict: ["2023-03-07 00:00:00", "2023-03-10 00:00:00"]  # 7th-9th Mar-2023
