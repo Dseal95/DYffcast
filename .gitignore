@@ -3,7 +3,7 @@ rainnow/data/*
 rainnow/data
 .DS_Store
 **/.DS_Store
-credentials.json
+credentials_real.json
 .vscode
 rainnow/satellite/logs
 .HDF5
@@ -14,8 +14,8 @@ sequences/
 frames
 *.nc
 *.h5
-results/
 *.ckpt
+results/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
