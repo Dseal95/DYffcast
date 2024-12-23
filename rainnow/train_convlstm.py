@@ -19,8 +19,7 @@ from rainnow.src.models.conv_lstm import ConvLSTMModel
 from rainnow.src.normalise import PreProcess
 from rainnow.src.plotting import plot_training_val_loss
 from rainnow.src.utilities.loading import load_imerg_datamodule_from_config
-from rainnow.src.utilities.utils import (generate_alphanumeric_id, get_device,
-                                         get_logger)
+from rainnow.src.utilities.utils import generate_alphanumeric_id, get_device, get_logger
 
 # ** DIRs **
 BASE_PATH = "/teamspace/studios/this_studio/DYffcast/"  # /rds/general/user/ds423/home
@@ -160,7 +159,7 @@ def main(ckpt_path: str = None):
              weight decay = {config['training']['weight_decay']} | num epochs = {config['training']['num_epochs']}.")
     log.info(f"loss function = {CRITERION.__class__.__name__}.\n")
     # fmt: on
-    
+
     # training and validation.
     model_save_path = Path(os.path.join(save_dir, f"{run_id}.pt"))
     train_losses, val_losses = [], []
