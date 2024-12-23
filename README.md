@@ -5,7 +5,21 @@
   <p><em>DYffusion forecasts a sequence of <i>h</i> snapshots <i>x<sub>t+i<sub>1</sub></sub> , x<sub>t+i<sub>2</sub></sub> , ... , x<sub>t+h</sub></i> given the initial condition <i>x<sub>0</sub></i>. This is analogous to how standard diffusion models are used to sample from a distribution.</em></p>
 </div>
 
-This work extends the probabilistic spatio-temporal forecasting framework, **DYffusion** (from [Rose-STL-Lab/dyffusion](https://github.com/Rose-STL-Lab/dyffusion/tree/main)) to the task of precipitation nowcasting. The aim of this study was to forecast IMERG satellite precipitation data up to a 4-hour horizon. In particular, this work focuses on the South American countries, Colombia, Ecuador, and Perú — countries more susceptible to increased flooding due to climate change and lacking freely available ground-based weather radar data. Additionally, a novel loss function, referred to as LCB, was introduced, combining MSE, MAE, and the LPIPS perceptual score. DYffusion trained with LCB (DYffusion<sub>LCB</sub>), outperformed four competitor models: two ConvLSTM baselines trained with LCB and binary cross-entropy (BCE) loss respecitvely, a DYffusion model trained with its native L1 loss and the STEPS nowcast method. The models were also evaluated on the heavy rain event, Cyclone Yaku. DYffusion<sub>LCB</sub> was able to capture the small and large scale features, generating sharp and stable forecasts up to a 2-hour horizon.
+## Summary
+* `PAPER`: https://arxiv.org/abs/2412.02723
+
+* This work extends the probabilistic spatio-temporal forecasting framework, **DYffusion** (from [Rose-STL-Lab/dyffusion](https://github.com/Rose-STL-Lab/dyffusion/tree/main)) to the task of precipitation nowcasting.
+
+* The aim of this study was to forecast IMERG satellite precipitation data up to a 4-hour horizon. 
+
+* This work focuses on the South American countries, Colombia, Ecuador, and Perú — countries more susceptible to increased flooding due to climate change and lacking freely available ground-based weather radar data. 
+
+* A novel loss function, referred to as LCB, is introduced, combining MSE, MAE, and the LPIPS perceptual score. 
+
+* DYffusion trained with LCB (DYffusion<sub>LCB</sub>), outperformed five competitor models: two ConvLSTM baselines trained with LCB and binary cross-entropy (BCE) loss respecitvely, a DYffusion model trained with its native L1 loss and the STEPS nowcast method.
+
+* The models were also evaluated on the heavy rain event, Cyclone Yaku. DYffusion<sub>LCB</sub> was able to capture the small and large scale features, generating sharp and stable forecasts up to a 2-hour horizon. **See below** for Cyclone Yaku results:
+
 
 <div style="text-align: center;">
   <img src="images/readme_cyclone_yaku_forecasts.png" alt="Cyclone Yaku Evolution" />
